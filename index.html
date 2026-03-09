@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hitster Timeline</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ===== CSS VARIABLES ===== */
+    :root {
+      --bg-primary:    #0a0a0f;
+      --bg-card:       #1a1a2e;
+      --bg-surface:    #16213e;
+      --accent-blue:   #4361ee;
+      --accent-purple: #7209b7;
+      --accent-gold:   #f4a261;
+      --text-primary:  #edf2f4;
+      --text-muted:    #8d99ae;
+      --success:       #06d6a0;
+      --danger:        #ef476f;
+      --font-ui: 'Inter', sans-serif;
+      --font-numbers: 'Space Grotesk', sans-serif;
+    }
+
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: var(--font-ui);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* ===== SCREEN MANAGEMENT ===== */
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 300ms ease;
+      padding: 24px;
+    }
+
+    .screen.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* ===== BUTTONS ===== */
+    button {
+      font-family: var(--font-ui);
+      font-size: 1.2rem;
+      font-weight: 600;
+      min-height: 60px;
+      padding: 14px 36px;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: transform 200ms ease, box-shadow 200ms ease;
+      color: var(--text-primary);
+      background: var(--accent-blue);
+      user-select: none;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(67, 97, 238, 0.5);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    button.btn-success {
+      background: var(--success);
+      color: #0a0a0f;
+    }
+    button.btn-success:hover {
+      box-shadow: 0 0 20px rgba(6, 214, 160, 0.5);
+    }
+
+    button.btn-danger {
+      background: var(--danger);
+    }
+    button.btn-danger:hover {
+      box-shadow: 0 0 20px rgba(239, 71, 111, 0.5);
+    }
+
+    button.btn-gold {
+      background: var(--accent-gold);
+      color: #0a0a0f;
+    }
+    button.btn-gold:hover {
+      box-shadow: 0 0 20px rgba(244, 162, 97, 0.5);
+    }
+
+    button.btn-purple {
+      background: var(--accent-purple);
+    }
+    button.btn-purple:hover {
+      box-shadow: 0 0 20px rgba(114, 9, 183, 0.5);
+    }
+
+    button.btn-secondary {
+      background: var(--bg-surface);
+      border: 2px solid var(--text-muted);
+    }
+    button.btn-secondary:hover {
+      box-shadow: 0 0 15px rgba(141, 153, 174, 0.3);
+    }
+
+    /* Shimmer button for reveal actions */
+    button.btn-shimmer {
+      background: linear-gradient(
+        110deg,
+        var(--accent-gold) 0%,
+        #ffd166 25%,
+        var(--accent-gold) 50%,
+        #ffd166 75%,
+        var(--accent-gold) 100%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 2s ease-in-out infinite;
+      color: #0a0a0f;
+      font-size: 1.4rem;
+    }
+    button.btn-shimmer:hover {
+      box-shadow: 0 0 30px rgba(244, 162, 97, 0.7);
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% center; }
+      100% { background-position: -200% center; }
+    }
+
+    /* ===== SCREEN 1: SETUP ===== */
+    #screen-setup {
+      gap: 32px;
+    }
+
+    .setup-logo {
+      font-family: var(--font-numbers);
+      font-size: 4rem;
+      font-weight: 700;
+      text-align: center;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple), var(--accent-gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .setup-subtitle {
+      color: var(--text-muted);
+      font-size: 1.3rem;
+      text-align: center;
+      margin-top: -16px;
+    }
+
+    .setup-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .setup-form label {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: -12px;
+    }
+
+    .setup-form input {
+      font-family: var(--font-ui);
+      font-size: 1.4rem;
+      padding: 16px 20px;
+      border-radius: 12px;
+      border: 2px solid var(--bg-surface);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 200ms ease;
+    }
+
+    .setup-form input:focus {
+      border-color: var(--accent-blue);
+    }
+
+    .setup-form input.team-b-input:focus {
+      border-color: var(--accent-purple);
+    }
+
+    /* ===== SCREEN 2: BOARD ===== */
+    #screen-board {
+      justify-content: space-between;
+      padding: 20px 24px;
+    }
+
+    .board-team-section {
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+    }
+
+    .board-team-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px;
+    }
+
+    .board-team-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .board-team-name.team-a { color: var(--accent-blue); }
+    .board-team-name.team-b { color: var(--accent-purple); }
+
+    .board-team-stats {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .board-team-chips {
+      font-family: var(--font-numbers);
+      font-size: 1.2rem;
+      color: var(--accent-gold);
+    }
+
+    .board-team-cards {
+      font-family: var(--font-numbers);
+      font-size: 1.2rem;
+      color: var(--text-muted);
+    }
+
+    .board-timeline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      padding: 10px;
+      background: rgba(26, 26, 46, 0.6);
+      border-radius: 16px;
+      min-height: 70px;
+      backdrop-filter: blur(8px);
+      overflow-y: auto;
+      max-height: 160px;
+    }
+
+    .board-timeline.team-a-border {
+      border: 2px solid rgba(67, 97, 238, 0.3);
+    }
+
+    .board-timeline.team-b-border {
+      border: 2px solid rgba(114, 9, 183, 0.3);
+    }
+
+    .timeline-card {
+      font-family: var(--font-numbers);
+      font-size: 1.3rem;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 10px;
+      background: var(--bg-surface);
+      border: 2px solid rgba(255,255,255,0.1);
+      animation: slideInCard 400ms ease-out;
+    }
+
+    .timeline-card.team-a-card {
+      border-color: rgba(67, 97, 238, 0.5);
+      box-shadow: 0 0 10px rgba(67, 97, 238, 0.15);
+    }
+
+    .timeline-card.team-b-card {
+      border-color: rgba(114, 9, 183, 0.5);
+      box-shadow: 0 0 10px rgba(114, 9, 183, 0.15);
+    }
+
+    @keyframes slideInCard {
+      0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.8);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .board-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 0;
+      flex-shrink: 0;
+    }
+
+    .board-turn-info {
+      font-size: 1.6rem;
+      font-weight: 700;
+    }
+
+    .board-song-counter {
+      font-size: 1rem;
+      color: var(--text-muted);
+    }
+
+    .board-active-indicator {
+      width: 100%;
+      transition: opacity 200ms ease;
+    }
+
+    .board-active-indicator.dimmed {
+      opacity: 0.4;
+    }
+
+    /* ===== SCREEN 3: PLAYING (modal overlay) ===== */
+    #screen-playing {
+      background: rgba(10, 10, 15, 0.95);
+      z-index: 100;
+      gap: 24px;
+    }
+
+    .playing-label {
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .vinyl-container {
+      position: relative;
+      width: 220px;
+      height: 220px;
+    }
+
+    .vinyl-disc {
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle,
+        #333 0%,
+        #111 15%,
+        #222 16%,
+        #111 30%,
+        #1a1a1a 31%,
+        #111 45%,
+        #1a1a1a 46%,
+        #111 60%,
+        #222 61%,
+        #111 75%,
+        #333 76%,
+        #222 100%
+      );
+      animation: spin 2s linear infinite;
+      box-shadow: 0 0 40px rgba(0,0,0,0.6);
+    }
+
+    .vinyl-disc.paused {
+      animation-play-state: paused;
+    }
+
+    .vinyl-label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-gold) 20%, #c87533 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .vinyl-hole {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #111;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .countdown-display {
+      font-family: var(--font-numbers);
+      font-size: 6rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .countdown-display.urgent {
+      color: var(--danger);
+    }
+
+    /* ===== SCREEN 4: GUESS ===== */
+    #screen-guess {
+      gap: 28px;
+    }
+
+    .guess-song-info {
+      text-align: center;
+      display: none;
+    }
+
+    .guess-song-info.visible {
+      display: block;
+      animation: fadeInUp 400ms ease-out;
+    }
+
+    .guess-title {
+      font-size: 2.4rem;
+      font-weight: 700;
+    }
+
+    .guess-artist {
+      font-size: 1.6rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    .guess-buttons {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    @keyframes fadeInUp {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ===== SCREEN 5: PLACE ===== */
+    #screen-place {
+      gap: 24px;
+    }
+
+    .place-header {
+      font-size: 1.8rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .place-subheader {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: -12px;
+    }
+
+    .place-current-song {
+      font-size: 1.4rem;
+      color: var(--accent-gold);
+      text-align: center;
+    }
+
+    .place-timeline-display {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      padding: 12px;
+      background: rgba(26, 26, 46, 0.6);
+      border-radius: 16px;
+      max-width: 90%;
+    }
+
+    .place-range-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: center;
+      max-width: 800px;
+    }
+
+    .place-range-buttons button {
+      font-size: 1.2rem;
+      min-width: 200px;
+    }
+
+    /* ===== SCREEN 6: CHALLENGE ===== */
+    #screen-challenge {
+      gap: 24px;
+    }
+
+    .challenge-info {
+      text-align: center;
+      font-size: 1.3rem;
+      color: var(--text-muted);
+      max-width: 700px;
+    }
+
+    .challenge-choice {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent-gold);
+      text-align: center;
+    }
+
+    .challenge-header {
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    .challenge-opponent {
+      font-size: 1.3rem;
+      color: var(--text-muted);
+    }
+
+    .challenge-range-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: center;
+      max-width: 800px;
+    }
+
+    .challenge-range-buttons button {
+      font-size: 1.2rem;
+      min-width: 200px;
+    }
+
+    .challenge-actions {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* ===== SCREEN 7: REVEAL ===== */
+    #screen-reveal {
+      gap: 28px;
+    }
+
+    .reveal-prompt {
+      font-size: 1.6rem;
+      color: var(--text-muted);
+    }
+
+    .reveal-year {
+      font-family: var(--font-numbers);
+      font-size: 8rem;
+      font-weight: 700;
+      color: var(--accent-gold);
+      display: none;
+    }
+
+    .reveal-year.visible {
+      display: block;
+      animation: yearReveal 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes yearReveal {
+      0% {
+        opacity: 0;
+        transform: scale(0.3);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .reveal-result {
+      font-size: 1.6rem;
+      font-weight: 700;
+      text-align: center;
+      min-height: 2em;
+    }
+
+    .reveal-result.correct { color: var(--success); }
+    .reveal-result.wrong { color: var(--danger); }
+
+    /* ===== SCREEN 8: VICTORY ===== */
+    #screen-victory {
+      gap: 32px;
+      overflow: hidden;
+    }
+
+    .victory-title {
+      font-family: var(--font-numbers);
+      font-size: 3.5rem;
+      font-weight: 700;
+      text-align: center;
+      animation: victoryPulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes victoryPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .victory-subtitle {
+      font-size: 1.5rem;
+      color: var(--text-muted);
+    }
+
+    /* Confetti */
+    .confetti-container {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .confetti-piece {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      top: -20px;
+      animation: confettiFall linear forwards;
+    }
+
+    @keyframes confettiFall {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(110vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+
+    /* ===== UTILITY ===== */
+    .hidden {
+      display: none !important;
+    }
+
+    /* YouTube player - completely hidden off-screen */
+    #yt-player-container {
+      position: fixed;
+      top: -9999px;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hidden YouTube player container -->
+  <div id="yt-player-container">
+    <div id="yt-player"></div>
+  </div>
+
+  <!-- ===== SCREEN 1: SETUP ===== -->
+  <section id="screen-setup" class="screen active">
+    <h1 class="setup-logo">Hitster Timeline</h1>
+    <p class="setup-subtitle">Adiviná la canción. Ubicá el año. Ganá la partida.</p>
+    <div class="setup-form">
+      <label for="team-a-name">Equipo A</label>
+      <input type="text" id="team-a-name" placeholder="Equipo A" maxlength="20">
+      <label for="team-b-name">Equipo B</label>
+      <input type="text" id="team-b-name" placeholder="Equipo B" maxlength="20" class="team-b-input">
+      <button id="btn-start-game" style="margin-top: 12px;">Comenzar Juego</button>
+    </div>
+  </section>
+
+  <!-- ===== SCREEN 2: BOARD ===== -->
+  <section id="screen-board" class="screen">
+    <!-- Team A section (top) -->
+    <div class="board-team-section board-active-indicator" id="board-team-a-section">
+      <div class="board-team-header">
+        <span class="board-team-name team-a" id="board-team-a-name">Equipo A</span>
+        <span class="board-team-stats"><span class="board-team-chips" id="board-team-a-chips">🪙 0</span> <span class="board-team-cards" id="board-team-a-cards">📋 2</span></span>
+      </div>
+      <div class="board-timeline team-a-border" id="board-timeline-a"></div>
+    </div>
+
+    <!-- Center info -->
+    <div class="board-center">
+      <div class="board-turn-info" id="board-turn-info">Turno: Equipo A</div>
+      <div class="board-song-counter" id="board-song-counter">Canciones restantes: 5</div>
+      <button id="btn-play-song">🎵 Reproducir Canción</button>
+    </div>
+
+    <!-- Team B section (bottom) -->
+    <div class="board-team-section board-active-indicator" id="board-team-b-section">
+      <div class="board-team-header">
+        <span class="board-team-name team-b" id="board-team-b-name">Equipo B</span>
+        <span class="board-team-stats"><span class="board-team-chips" id="board-team-b-chips">🪙 0</span> <span class="board-team-cards" id="board-team-b-cards">📋 2</span></span>
+      </div>
+      <div class="board-timeline team-b-border" id="board-timeline-b"></div>
+    </div>
+  </section>
+
+  <!-- ===== SCREEN 3: PLAYING (modal overlay) ===== -->
+  <section id="screen-playing" class="screen">
+    <p class="playing-label">Escuchen...</p>
+    <div class="vinyl-container">
+      <div class="vinyl-disc" id="vinyl-disc">
+      </div>
+      <div class="vinyl-label">
+        <div class="vinyl-hole"></div>
+      </div>
+    </div>
+    <div class="countdown-display" id="countdown-display">60</div>
+    <button id="btn-stop-early" class="btn-danger">⏹ Ya la tenemos</button>
+  </section>
+
+  <!-- ===== SCREEN 4: GUESS ===== -->
+  <section id="screen-guess" class="screen">
+    <button id="btn-reveal-song" class="btn-shimmer">Revelar Canción / Artista</button>
+    <div class="guess-song-info" id="guess-song-info">
+      <div class="guess-title" id="guess-title"></div>
+      <div class="guess-artist" id="guess-artist"></div>
+    </div>
+    <div class="guess-buttons hidden" id="guess-buttons">
+      <button class="btn-success" id="btn-guess-correct">✅ ¡Acertaron! (+1 Ficha)</button>
+      <button class="btn-danger" id="btn-guess-wrong">❌ Fallaron</button>
+    </div>
+  </section>
+
+  <!-- ===== SCREEN 5: PLACE ===== -->
+  <section id="screen-place" class="screen">
+    <div class="place-header">Ubicar en la Línea de Tiempo</div>
+    <div class="place-subheader">¿Dónde va esta canción?</div>
+    <div class="place-current-song" id="place-current-song"></div>
+    <div class="place-timeline-display" id="place-timeline-display"></div>
+    <div class="place-range-buttons" id="place-range-buttons"></div>
+  </section>
+
+  <!-- ===== SCREEN 6: CHALLENGE ===== -->
+  <section id="screen-challenge" class="screen">
+    <div class="challenge-header">¡Desafío!</div>
+    <div class="challenge-info" id="challenge-info"></div>
+    <div class="challenge-choice" id="challenge-choice"></div>
+    <div class="challenge-opponent" id="challenge-opponent"></div>
+
+    <!-- Phase 1: ask if opponent wants to challenge -->
+    <div class="challenge-actions" id="challenge-ask">
+      <button class="btn-danger" id="btn-challenge-yes">🔥 ¡Desafío! (−1 Ficha)</button>
+      <button class="btn-secondary" id="btn-challenge-no">Sin Desafío →</button>
+    </div>
+
+    <!-- Phase 2: if challenged, opponent picks range -->
+    <div class="challenge-range-buttons hidden" id="challenge-range-buttons"></div>
+  </section>
+
+  <!-- ===== SCREEN 7: REVEAL ===== -->
+  <section id="screen-reveal" class="screen">
+    <div class="reveal-prompt" id="reveal-prompt">El año de la canción es...</div>
+    <button id="btn-reveal-year" class="btn-shimmer">Revelar Año</button>
+    <div class="reveal-year" id="reveal-year"></div>
+    <div class="reveal-result" id="reveal-result"></div>
+    <button id="btn-next-turn" class="hidden">Siguiente Turno →</button>
+  </section>
+
+  <!-- ===== SCREEN 8: VICTORY ===== -->
+  <section id="screen-victory" class="screen">
+    <div class="confetti-container" id="confetti-container"></div>
+    <div class="victory-title" id="victory-title"></div>
+    <div class="victory-subtitle">¡Felicitaciones!</div>
+    <button id="btn-play-again" class="btn-gold">Jugar de Nuevo</button>
+  </section>
+
+  <script>
+    // ===== SONG DATA (placeholder for testing) =====
+    const SONGS = [
+      {"id":1,"title":"Bohemian Rhapsody","artist":"Queen","year":1975,"videoId":"fJ9rUzIMcZQ","region":"global"},
+      {"id":2,"title":"Hotel California","artist":"Eagles","year":1976,"videoId":"EqPtz5qN7HM","region":"global"},
+      {"id":3,"title":"Billie Jean","artist":"Michael Jackson","year":1982,"videoId":"Zi_XLOBDo_Y","region":"global"},
+      {"id":4,"title":"Smells Like Teen Spirit","artist":"Nirvana","year":1991,"videoId":"hTWKbfoikeg","region":"global"},
+      {"id":5,"title":"Rolling in the Deep","artist":"Adele","year":2010,"videoId":"rYEDA3JcQqw","region":"global"}
+    ];
+
+    // ===== GAME STATE =====
+    let gameState = {
+      teams: {
+        a: { name: "Equipo A", timeline: [], chips: 0 },
+        b: { name: "Equipo B", timeline: [], chips: 0 }
+      },
+      currentTurn: "a",
+      usedSongIds: new Set(),
+      currentSong: null,
+      phase: "setup",
+      winner: null,
+      selectedRange: null,
+      challengerRange: null,
+      isChallenge: false
+    };
+
+    const VICTORY_CARD_COUNT = 20;
+    let countdownTimer = null;
+    let countdownValue = 60;
+    let ytPlayer = null;
+    let ytReady = false;
+
+    // ===== WEB AUDIO API - SOUND EFFECTS =====
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    const SFX = {
+      // 1. Vinyl scratch: filtered white noise with amplitude ramp
+      vinylScratch() {
+        const ctx = getAudioContext();
+        const duration = 0.3;
+        const bufferSize = ctx.sampleRate * duration;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 1000;
+        filter.Q.value = 0.5;
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.4, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+
+        source.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        source.start();
+        source.stop(ctx.currentTime + duration);
+      },
+
+      // 2. Tick: short sine oscillator click
+      tick() {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.05);
+      },
+
+      // 3. Buzzer: low square wave
+      buzzer() {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.value = 100;
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.5);
+      },
+
+      // 4. Correct: two sine tones C->E ascending
+      correct() {
+        const ctx = getAudioContext();
+        // C5 = 523.25 Hz, E5 = 659.25 Hz
+        [523.25, 659.25].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          const startTime = ctx.currentTime + i * 0.3;
+          gain.gain.setValueAtTime(0, startTime);
+          gain.gain.linearRampToValueAtTime(0.3, startTime + 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + 0.3);
+        });
+      },
+
+      // 5. Wrong: sawtooth descending 300->100Hz
+      wrong() {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(300, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(100, ctx.currentTime + 0.5);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.5);
+      },
+
+      // 6. Challenge: three staccato square tones
+      challenge() {
+        const ctx = getAudioContext();
+        [440, 554.37, 659.25].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.value = freq;
+          const startTime = ctx.currentTime + i * 0.12;
+          gain.gain.setValueAtTime(0, startTime);
+          gain.gain.linearRampToValueAtTime(0.2, startTime + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.1);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + 0.12);
+        });
+      },
+
+      // 7. Fanfare: C-E-G-C arpeggio sine
+      fanfare() {
+        const ctx = getAudioContext();
+        // C5, E5, G5, C6
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          const startTime = ctx.currentTime + i * 0.2;
+          gain.gain.setValueAtTime(0, startTime);
+          gain.gain.linearRampToValueAtTime(0.3, startTime + 0.05);
+          gain.gain.setValueAtTime(0.3, startTime + 0.15);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.4);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + 0.5);
+        });
+      }
+    };
+
+    // ===== YOUTUBE IFRAME API =====
+    // Load the API script
+    const ytScript = document.createElement('script');
+    ytScript.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(ytScript);
+
+    // Global callback required by YouTube IFrame API
+    window.onYouTubeIframeAPIReady = function() {
+      ytPlayer = new YT.Player('yt-player', {
+        height: '1',
+        width: '1',
+        playerVars: {
+          autoplay: 0,
+          controls: 0,
+          disablekb: 1,
+          fs: 0,
+          modestbranding: 1,
+          rel: 0
+        },
+        events: {
+          onReady: function() {
+            ytReady = true;
+          }
+        }
+      });
+    };
+
+    function playYouTubeVideo(videoId) {
+      if (ytReady && ytPlayer) {
+        ytPlayer.loadVideoById(videoId);
+      }
+    }
+
+    function pauseYouTubeVideo() {
+      if (ytReady && ytPlayer) {
+        try {
+          ytPlayer.pauseVideo();
+        } catch (e) {
+          // Silently ignore if player not ready
+        }
+      }
+    }
+
+    // ===== SCREEN MANAGEMENT =====
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => {
+        s.classList.remove('active');
+      });
+      const target = document.getElementById('screen-' + screenId);
+      if (target) {
+        target.classList.add('active');
+      }
+      gameState.phase = screenId;
+    }
+
+    // ===== HELPER FUNCTIONS =====
+
+    // Generate a random year between min and max (inclusive)
+    function randomYear(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // Generate 2 unique random years for a team, sorted
+    function generateStartingYears() {
+      const y1 = randomYear(1900, 2024);
+      let y2 = randomYear(1900, 2024);
+      // Ensure they are different
+      while (y2 === y1) {
+        y2 = randomYear(1900, 2024);
+      }
+      return [y1, y2].sort((a, b) => a - b);
+    }
+
+    // Get the opponent team key
+    function opponentOf(teamKey) {
+      return teamKey === 'a' ? 'b' : 'a';
+    }
+
+    // Pick a random unplayed song
+    function pickRandomSong() {
+      const available = SONGS.filter(s => !gameState.usedSongIds.has(s.id));
+      if (available.length === 0) return null;
+      const idx = Math.floor(Math.random() * available.length);
+      return available[idx];
+    }
+
+    // Generate range options from a sorted timeline
+    function generateRanges(timeline) {
+      const sorted = [...timeline].sort((a, b) => a - b);
+      const ranges = [];
+
+      if (sorted.length === 0) {
+        // No cards: only one range covering everything
+        ranges.push({
+          label: 'Cualquier año',
+          min: -Infinity,
+          max: Infinity
+        });
+        return ranges;
+      }
+
+      // "Antes de {first}"
+      ranges.push({
+        label: `Antes de ${sorted[0]}`,
+        min: -Infinity,
+        max: sorted[0] - 1
+      });
+
+      // "Entre {a} y {b}" for consecutive pairs
+      for (let i = 0; i < sorted.length - 1; i++) {
+        ranges.push({
+          label: `Entre ${sorted[i]} y ${sorted[i + 1]}`,
+          min: sorted[i],
+          max: sorted[i + 1]
+        });
+      }
+
+      // "Después de {last}"
+      ranges.push({
+        label: `Después de ${sorted[sorted.length - 1]}`,
+        min: sorted[sorted.length - 1] + 1,
+        max: Infinity
+      });
+
+      return ranges;
+    }
+
+    // Check if a year fits within a range
+    function yearFitsRange(year, range) {
+      return year >= range.min && year <= range.max;
+    }
+
+    // Insert a year into a team's sorted timeline
+    function insertIntoTimeline(teamKey, year) {
+      gameState.teams[teamKey].timeline.push(year);
+      gameState.teams[teamKey].timeline.sort((a, b) => a - b);
+    }
+
+    // Check if a team has won
+    function checkVictory(teamKey) {
+      return gameState.teams[teamKey].timeline.length >= VICTORY_CARD_COUNT;
+    }
+
+    // Remaining songs count
+    function remainingSongs() {
+      return SONGS.filter(s => !gameState.usedSongIds.has(s.id)).length;
+    }
+
+    // ===== UI RENDERING =====
+
+    function renderBoardTimeline(teamKey) {
+      const containerId = 'board-timeline-' + teamKey;
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      const sorted = [...gameState.teams[teamKey].timeline].sort((a, b) => a - b);
+      sorted.forEach(year => {
+        const card = document.createElement('div');
+        card.className = `timeline-card team-${teamKey}-card`;
+        card.textContent = year;
+        container.appendChild(card);
+      });
+    }
+
+    function renderBoard() {
+      const teamA = gameState.teams.a;
+      const teamB = gameState.teams.b;
+
+      document.getElementById('board-team-a-name').textContent = teamA.name;
+      document.getElementById('board-team-b-name').textContent = teamB.name;
+      document.getElementById('board-team-a-chips').textContent = `🪙 ${teamA.chips}`;
+      document.getElementById('board-team-b-chips').textContent = `🪙 ${teamB.chips}`;
+      document.getElementById('board-team-a-cards').textContent = `📋 ${teamA.timeline.length}/${VICTORY_CARD_COUNT}`;
+      document.getElementById('board-team-b-cards').textContent = `📋 ${teamB.timeline.length}/${VICTORY_CARD_COUNT}`;
+
+      renderBoardTimeline('a');
+      renderBoardTimeline('b');
+
+      const currentTeam = gameState.teams[gameState.currentTurn];
+      document.getElementById('board-turn-info').textContent = `Turno: ${currentTeam.name}`;
+
+      // Highlight active team section, dim the other
+      const sectionA = document.getElementById('board-team-a-section');
+      const sectionB = document.getElementById('board-team-b-section');
+      sectionA.classList.toggle('dimmed', gameState.currentTurn !== 'a');
+      sectionB.classList.toggle('dimmed', gameState.currentTurn !== 'b');
+
+      // Color turn info text to match active team
+      const turnInfo = document.getElementById('board-turn-info');
+      turnInfo.style.color = gameState.currentTurn === 'a' ? 'var(--accent-blue)' : 'var(--accent-purple)';
+
+      document.getElementById('board-song-counter').textContent = `Canciones restantes: ${remainingSongs()}`;
+
+      // Disable play button if no songs left
+      document.getElementById('btn-play-song').disabled = remainingSongs() === 0;
+    }
+
+    function renderPlaceTimeline(teamKey) {
+      const container = document.getElementById('place-timeline-display');
+      container.innerHTML = '';
+      const sorted = [...gameState.teams[teamKey].timeline].sort((a, b) => a - b);
+      sorted.forEach(year => {
+        const card = document.createElement('div');
+        card.className = `timeline-card team-${teamKey}-card`;
+        card.textContent = year;
+        container.appendChild(card);
+      });
+    }
+
+    // ===== CONFETTI =====
+    function spawnConfetti() {
+      const container = document.getElementById('confetti-container');
+      container.innerHTML = '';
+      const colors = ['#4361ee', '#7209b7', '#f4a261', '#06d6a0', '#ef476f', '#ffd166', '#edf2f4'];
+      for (let i = 0; i < 80; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = Math.random() * 100 + '%';
+        piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.width = (Math.random() * 10 + 6) + 'px';
+        piece.style.height = (Math.random() * 10 + 6) + 'px';
+        piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        piece.style.animationDuration = (Math.random() * 2 + 2) + 's';
+        piece.style.animationDelay = (Math.random() * 2) + 's';
+        container.appendChild(piece);
+      }
+    }
+
+    // ===== GAME FLOW =====
+
+    // --- SETUP ---
+    document.getElementById('btn-start-game').addEventListener('click', () => {
+      const nameA = document.getElementById('team-a-name').value.trim() || 'Equipo A';
+      const nameB = document.getElementById('team-b-name').value.trim() || 'Equipo B';
+
+      gameState.teams.a.name = nameA;
+      gameState.teams.b.name = nameB;
+      gameState.teams.a.timeline = generateStartingYears();
+      gameState.teams.b.timeline = generateStartingYears();
+      gameState.teams.a.chips = 0;
+      gameState.teams.b.chips = 0;
+      gameState.currentTurn = 'a';
+      gameState.usedSongIds = new Set();
+      gameState.currentSong = null;
+      gameState.winner = null;
+      gameState.selectedRange = null;
+      gameState.challengerRange = null;
+      gameState.isChallenge = false;
+
+      renderBoard();
+      showScreen('board');
+    });
+
+    // --- BOARD -> PLAYING ---
+    document.getElementById('btn-play-song').addEventListener('click', () => {
+      const song = pickRandomSong();
+      if (!song) return;
+
+      gameState.currentSong = song;
+      gameState.usedSongIds.add(song.id);
+      gameState.selectedRange = null;
+      gameState.challengerRange = null;
+      gameState.isChallenge = false;
+
+      // Start playing
+      SFX.vinylScratch();
+      showScreen('playing');
+      startCountdown();
+      playYouTubeVideo(song.videoId);
+
+      // Reset vinyl animation
+      const disc = document.getElementById('vinyl-disc');
+      disc.classList.remove('paused');
+    });
+
+    // --- PLAYING: Countdown ---
+    function startCountdown() {
+      countdownValue = 60;
+      const display = document.getElementById('countdown-display');
+      display.textContent = countdownValue;
+      display.classList.remove('urgent');
+
+      clearInterval(countdownTimer);
+      countdownTimer = setInterval(() => {
+        countdownValue--;
+        display.textContent = countdownValue;
+
+        if (countdownValue <= 10) {
+          display.classList.add('urgent');
+          SFX.tick();
+        }
+
+        if (countdownValue <= 0) {
+          stopPlayback();
+        }
+      }, 1000);
+    }
+
+    function stopPlayback() {
+      clearInterval(countdownTimer);
+      countdownTimer = null;
+      pauseYouTubeVideo();
+
+      const disc = document.getElementById('vinyl-disc');
+      disc.classList.add('paused');
+
+      if (countdownValue <= 0) {
+        SFX.buzzer();
+      }
+
+      // Move to guess screen
+      showScreen('guess');
+      resetGuessScreen();
+    }
+
+    // Stop early button
+    document.getElementById('btn-stop-early').addEventListener('click', () => {
+      stopPlayback();
+    });
+
+    // --- GUESS ---
+    function resetGuessScreen() {
+      const songInfo = document.getElementById('guess-song-info');
+      songInfo.classList.remove('visible');
+      document.getElementById('guess-buttons').classList.add('hidden');
+      document.getElementById('btn-reveal-song').classList.remove('hidden');
+    }
+
+    document.getElementById('btn-reveal-song').addEventListener('click', () => {
+      const song = gameState.currentSong;
+      document.getElementById('guess-title').textContent = song.title;
+      document.getElementById('guess-artist').textContent = song.artist;
+
+      const songInfo = document.getElementById('guess-song-info');
+      songInfo.classList.add('visible');
+      document.getElementById('btn-reveal-song').classList.add('hidden');
+      document.getElementById('guess-buttons').classList.remove('hidden');
+    });
+
+    // Correct guess: +1 chip, go to place
+    document.getElementById('btn-guess-correct').addEventListener('click', () => {
+      SFX.correct();
+      gameState.teams[gameState.currentTurn].chips += 1;
+      goToPlaceScreen();
+    });
+
+    // Wrong guess: go to place (no chip)
+    document.getElementById('btn-guess-wrong').addEventListener('click', () => {
+      SFX.wrong();
+      goToPlaceScreen();
+    });
+
+    // --- PLACE ---
+    function goToPlaceScreen() {
+      showScreen('place');
+      const teamKey = gameState.currentTurn;
+      const team = gameState.teams[teamKey];
+      const song = gameState.currentSong;
+
+      document.getElementById('place-current-song').textContent = `"${song.title}" — ${song.artist}`;
+
+      renderPlaceTimeline(teamKey);
+
+      // Generate range buttons
+      const rangesContainer = document.getElementById('place-range-buttons');
+      rangesContainer.innerHTML = '';
+      const ranges = generateRanges(team.timeline);
+
+      ranges.forEach((range, idx) => {
+        const btn = document.createElement('button');
+        btn.textContent = range.label;
+        btn.className = gameState.currentTurn === 'a' ? '' : 'btn-purple';
+        btn.addEventListener('click', () => {
+          gameState.selectedRange = range;
+          goToChallengeScreen();
+        });
+        rangesContainer.appendChild(btn);
+      });
+    }
+
+    // --- CHALLENGE ---
+    function goToChallengeScreen() {
+      showScreen('challenge');
+      const activeTeamKey = gameState.currentTurn;
+      const opponentKey = opponentOf(activeTeamKey);
+      const activeTeam = gameState.teams[activeTeamKey];
+      const opponent = gameState.teams[opponentKey];
+
+      document.getElementById('challenge-info').textContent =
+        `${activeTeam.name} eligió: "${gameState.selectedRange.label}"`;
+
+      document.getElementById('challenge-choice').textContent = '';
+
+      document.getElementById('challenge-opponent').textContent =
+        `${opponent.name}, ¿quieren desafiar?`;
+
+      // Show ask phase, hide range buttons
+      document.getElementById('challenge-ask').classList.remove('hidden');
+      document.getElementById('challenge-range-buttons').classList.add('hidden');
+
+      // Enable/disable challenge button based on opponent chips
+      const challengeBtn = document.getElementById('btn-challenge-yes');
+      challengeBtn.disabled = opponent.chips < 1;
+      if (opponent.chips < 1) {
+        challengeBtn.textContent = '🔥 ¡Desafío! (Sin fichas)';
+      } else {
+        challengeBtn.textContent = `🔥 ¡Desafío! (−1 Ficha) [🪙 ${opponent.chips}]`;
+      }
+    }
+
+    // No challenge: go directly to reveal
+    document.getElementById('btn-challenge-no').addEventListener('click', () => {
+      gameState.isChallenge = false;
+      gameState.challengerRange = null;
+      goToRevealScreen();
+    });
+
+    // Challenge accepted
+    document.getElementById('btn-challenge-yes').addEventListener('click', () => {
+      SFX.challenge();
+      gameState.isChallenge = true;
+
+      const opponentKey = opponentOf(gameState.currentTurn);
+      const opponent = gameState.teams[opponentKey];
+
+      // Spend 1 chip from opponent
+      opponent.chips -= 1;
+
+      // Hide ask phase, show range selection for opponent
+      document.getElementById('challenge-ask').classList.add('hidden');
+
+      document.getElementById('challenge-choice').textContent =
+        `${opponent.name}, elijan dónde va la canción:`;
+
+      // Generate range buttons for the active team's timeline
+      // (challenger picks from the same timeline because they're saying where the card should go)
+      const activeTeam = gameState.teams[gameState.currentTurn];
+      const ranges = generateRanges(activeTeam.timeline);
+
+      const rangesContainer = document.getElementById('challenge-range-buttons');
+      rangesContainer.innerHTML = '';
+      rangesContainer.classList.remove('hidden');
+
+      ranges.forEach(range => {
+        // Skip the range the active team already chose
+        if (range.label === gameState.selectedRange.label) return;
+
+        const btn = document.createElement('button');
+        btn.textContent = range.label;
+        btn.className = 'btn-danger';
+        btn.addEventListener('click', () => {
+          gameState.challengerRange = range;
+          goToRevealScreen();
+        });
+        rangesContainer.appendChild(btn);
+      });
+    });
+
+    // --- REVEAL ---
+    function goToRevealScreen() {
+      showScreen('reveal');
+
+      document.getElementById('reveal-prompt').textContent = 'El año de la canción es...';
+      document.getElementById('btn-reveal-year').classList.remove('hidden');
+      document.getElementById('reveal-year').classList.remove('visible');
+      document.getElementById('reveal-year').style.display = 'none';
+      document.getElementById('reveal-result').textContent = '';
+      document.getElementById('reveal-result').className = 'reveal-result';
+      document.getElementById('btn-next-turn').classList.add('hidden');
+    }
+
+    document.getElementById('btn-reveal-year').addEventListener('click', () => {
+      const song = gameState.currentSong;
+      const year = song.year;
+
+      // Show the year
+      const yearEl = document.getElementById('reveal-year');
+      yearEl.textContent = year;
+      yearEl.style.display = '';
+      yearEl.classList.add('visible');
+
+      // Hide the reveal button
+      document.getElementById('btn-reveal-year').classList.add('hidden');
+
+      // Resolve the turn
+      resolveReveal(year);
+    });
+
+    function resolveReveal(year) {
+      const activeTeamKey = gameState.currentTurn;
+      const opponentKey = opponentOf(activeTeamKey);
+      const activeTeam = gameState.teams[activeTeamKey];
+      const opponent = gameState.teams[opponentKey];
+
+      const activeCorrect = yearFitsRange(year, gameState.selectedRange);
+      const challengerCorrect = gameState.isChallenge && gameState.challengerRange
+        ? yearFitsRange(year, gameState.challengerRange)
+        : false;
+
+      const resultEl = document.getElementById('reveal-result');
+      let resultText = '';
+      let resultClass = '';
+
+      if (activeCorrect) {
+        // Active team is correct: card goes to their timeline
+        insertIntoTimeline(activeTeamKey, year);
+        resultText = `✅ ¡${activeTeam.name} acertó! La carta va a su línea de tiempo.`;
+        resultClass = 'correct';
+        SFX.correct();
+      } else if (gameState.isChallenge && challengerCorrect) {
+        // Active team wrong, challenger correct: card goes to challenger
+        insertIntoTimeline(opponentKey, year);
+        resultText = `🔥 ¡${opponent.name} ganó el desafío! La carta va a su línea de tiempo.`;
+        resultClass = 'correct';
+        SFX.correct();
+      } else if (gameState.isChallenge && !challengerCorrect) {
+        // Both wrong
+        resultText = `❌ Nadie acertó. La carta se descarta. ${opponent.name} pierde la ficha.`;
+        resultClass = 'wrong';
+        SFX.wrong();
+      } else {
+        // No challenge, active team wrong
+        resultText = `❌ ${activeTeam.name} falló. La carta se descarta.`;
+        resultClass = 'wrong';
+        SFX.wrong();
+      }
+
+      resultEl.textContent = resultText;
+      resultEl.classList.add(resultClass);
+
+      // Check victory
+      if (checkVictory(activeTeamKey)) {
+        gameState.winner = activeTeamKey;
+        setTimeout(() => goToVictoryScreen(activeTeamKey), 1500);
+        return;
+      }
+      if (gameState.isChallenge && challengerCorrect && checkVictory(opponentKey)) {
+        gameState.winner = opponentKey;
+        setTimeout(() => goToVictoryScreen(opponentKey), 1500);
+        return;
+      }
+
+      // Show next turn button
+      document.getElementById('btn-next-turn').classList.remove('hidden');
+    }
+
+    // Next turn
+    document.getElementById('btn-next-turn').addEventListener('click', () => {
+      gameState.currentTurn = opponentOf(gameState.currentTurn);
+      renderBoard();
+      showScreen('board');
+    });
+
+    // --- VICTORY ---
+    function goToVictoryScreen(winnerKey) {
+      showScreen('victory');
+      const winner = gameState.teams[winnerKey];
+      document.getElementById('victory-title').textContent = `🏆 ¡${winner.name} GANA! 🏆`;
+
+      // Color the title based on winning team
+      const titleEl = document.getElementById('victory-title');
+      titleEl.style.color = winnerKey === 'a' ? 'var(--accent-blue)' : 'var(--accent-purple)';
+
+      SFX.fanfare();
+      spawnConfetti();
+    }
+
+    // Play again
+    document.getElementById('btn-play-again').addEventListener('click', () => {
+      showScreen('setup');
+    });
+  </script>
+</body>
+</html>
