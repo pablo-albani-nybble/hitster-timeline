@@ -459,6 +459,18 @@
       color: var(--danger);
     }
 
+    .playing-actions {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    #btn-skip-forward {
+      font-size: 1rem;
+      min-height: 50px;
+      padding: 10px 24px;
+    }
+
     /* ===== SCREEN 4: GUESS ===== */
     #screen-guess {
       gap: 28px;
@@ -479,10 +491,90 @@
       font-weight: 700;
     }
 
+    .guess-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .guess-artist-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
     .guess-artist {
       font-size: 1.6rem;
       color: var(--text-muted);
       margin-top: 8px;
+    }
+
+    .btn-edit-song {
+      background: transparent;
+      border: none;
+      font-size: 1.2rem;
+      min-height: auto;
+      padding: 4px 8px;
+      opacity: 0.4;
+      cursor: pointer;
+      transition: opacity 200ms;
+    }
+
+    .btn-edit-song:hover {
+      opacity: 1;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .guess-edit-form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .guess-edit-form.hidden { display: none; }
+
+    .edit-input {
+      font-family: var(--font-ui);
+      font-size: 1.2rem;
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 2px solid var(--bg-surface);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      width: 320px;
+      text-align: center;
+    }
+
+    .edit-input:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+    }
+
+    .guess-edit-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-small {
+      font-size: 0.9rem;
+      min-height: 40px;
+      padding: 8px 20px;
+    }
+
+    .guess-playback-controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      opacity: 0.7;
+    }
+
+    .guess-playback-controls:hover {
+      opacity: 1;
     }
 
     .guess-buttons {
@@ -610,17 +702,52 @@
       color: var(--text-muted);
     }
 
+    .reveal-year-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
     .reveal-year {
       font-family: var(--font-numbers);
       font-size: 8rem;
       font-weight: 700;
       color: var(--accent-gold);
-      display: none;
     }
 
     .reveal-year.visible {
-      display: block;
       animation: yearReveal 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .btn-edit-year {
+      background: transparent;
+      border: none;
+      font-size: 1.4rem;
+      min-height: auto;
+      padding: 4px 8px;
+      opacity: 0.4;
+      cursor: pointer;
+      transition: opacity 200ms;
+    }
+
+    .btn-edit-year:hover {
+      opacity: 1;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .reveal-edit-form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .reveal-edit-form.hidden { display: none; }
+
+    .reveal-edit-form .edit-input {
+      width: 160px;
+      font-size: 1.4rem;
     }
 
     @keyframes yearReveal {
@@ -778,17 +905,36 @@
       </div>
     </div>
     <div class="countdown-display" id="countdown-display">60</div>
-    <button id="btn-stop-early" class="btn-danger">⏹ Ya la tenemos</button>
+    <div class="playing-actions">
+      <button id="btn-skip-forward" class="btn-secondary">⏩ +20s</button>
+      <button id="btn-stop-early" class="btn-danger">⏹ Ya la tenemos</button>
+    </div>
   </section>
 
   <!-- ===== SCREEN 4: GUESS ===== -->
   <section id="screen-guess" class="screen">
-    <button id="btn-reveal-song" class="btn-shimmer">Revelar Canción / Artista</button>
-    <div class="guess-song-info" id="guess-song-info">
-      <div class="guess-title" id="guess-title"></div>
-      <div class="guess-artist" id="guess-artist"></div>
+    <div class="guess-song-info visible" id="guess-song-info">
+      <div class="guess-title-row">
+        <div class="guess-title" id="guess-title"></div>
+        <button class="btn-edit-song" id="btn-edit-song" title="Editar">✏️</button>
+      </div>
+      <div class="guess-artist-row">
+        <div class="guess-artist" id="guess-artist"></div>
+      </div>
     </div>
-    <div class="guess-buttons hidden" id="guess-buttons">
+    <div class="guess-edit-form hidden" id="guess-edit-form">
+      <input type="text" id="edit-title" class="edit-input" placeholder="Título">
+      <input type="text" id="edit-artist" class="edit-input" placeholder="Artista">
+      <div class="guess-edit-actions">
+        <button class="btn-success btn-small" id="btn-edit-save">Guardar</button>
+        <button class="btn-secondary btn-small" id="btn-edit-cancel">Cancelar</button>
+      </div>
+    </div>
+    <div class="guess-playback-controls">
+      <button class="btn-secondary btn-small" id="btn-guess-replay">▶️ Reproducir</button>
+      <button class="btn-secondary btn-small" id="btn-guess-skip">⏩ +20s</button>
+    </div>
+    <div class="guess-buttons" id="guess-buttons">
       <button class="btn-success" id="btn-guess-correct">✅ ¡Acertaron! (+1 Ficha)</button>
       <button class="btn-danger" id="btn-guess-wrong">❌ Fallaron</button>
     </div>
@@ -823,8 +969,17 @@
   <!-- ===== SCREEN 7: REVEAL ===== -->
   <section id="screen-reveal" class="screen">
     <div class="reveal-prompt" id="reveal-prompt">El año de la canción es...</div>
-    <button id="btn-reveal-year" class="btn-shimmer">Revelar Año</button>
-    <div class="reveal-year" id="reveal-year"></div>
+    <div class="reveal-year-row">
+      <div class="reveal-year visible" id="reveal-year"></div>
+      <button class="btn-edit-year" id="btn-edit-year" title="Editar año">✏️</button>
+    </div>
+    <div class="reveal-edit-form hidden" id="reveal-edit-form">
+      <input type="number" id="edit-year" class="edit-input" placeholder="Año" min="1900" max="2030">
+      <div class="guess-edit-actions">
+        <button class="btn-success btn-small" id="btn-edit-year-save">Guardar</button>
+        <button class="btn-secondary btn-small" id="btn-edit-year-cancel">Cancelar</button>
+      </div>
+    </div>
     <div class="reveal-result" id="reveal-result"></div>
     <button id="btn-next-turn" class="hidden">Siguiente Turno →</button>
   </section>
@@ -838,6 +993,30 @@
   </section>
 
   <script>
+    // ===== CORRECTIONS via GitHub Issues =====
+    const GITHUB_REPO = 'pablo-albani-nybble/hitster-timeline';
+
+    function reportCorrection(song, field, oldValue, newValue) {
+      const title = encodeURIComponent(`fix(data): ${song.title} \u2014 ${field}`);
+      const body = encodeURIComponent(
+        `## Song Correction\n\n` +
+        `| Field | Value |\n|---|---|\n` +
+        `| **Song ID** | ${song.id} |\n` +
+        `| **Title** | ${song.title} |\n` +
+        `| **Artist** | ${song.artist} |\n` +
+        `| **Year** | ${song.year} |\n` +
+        `| **Video ID** | ${song.videoId} |\n` +
+        `| **Field** | ${field} |\n` +
+        `| **Old value** | ${oldValue} |\n` +
+        `| **New value** | ${newValue} |\n\n` +
+        `_Reported from Hitster Timeline app_`
+      );
+      window.open(
+        `https://github.com/${GITHUB_REPO}/issues/new?title=${title}&body=${body}&labels=data-fix`,
+        '_blank'
+      );
+    }
+
     // ===== SONG DATA =====
     // SONGS_FULL and SONGS_LIGHT are defined below (auto-generated by embed_songs.py)
     // Active song list selected at game start
@@ -1371,27 +1550,80 @@
       stopPlayback();
     });
 
+    // Skip forward 20 seconds (audio only, timer unaffected)
+    document.getElementById('btn-skip-forward').addEventListener('click', () => {
+      if (ytPlayer && ytPlayer.getCurrentTime) {
+        ytPlayer.seekTo(ytPlayer.getCurrentTime() + 20, true);
+      }
+    });
+
     // --- GUESS ---
     function resetGuessScreen() {
-      const songInfo = document.getElementById('guess-song-info');
-      songInfo.classList.remove('visible');
-      document.getElementById('guess-buttons').classList.add('hidden');
-      document.getElementById('btn-reveal-song').classList.remove('hidden');
-    }
-
-    document.getElementById('btn-reveal-song').addEventListener('click', () => {
       const song = gameState.currentSong;
       document.getElementById('guess-title').textContent = song.title;
       document.getElementById('guess-artist').textContent = song.artist;
+      document.getElementById('guess-edit-form').classList.add('hidden');
+      document.getElementById('guess-song-info').style.display = '';
+    }
 
-      const songInfo = document.getElementById('guess-song-info');
-      songInfo.classList.add('visible');
-      document.getElementById('btn-reveal-song').classList.add('hidden');
-      document.getElementById('guess-buttons').classList.remove('hidden');
+    // Edit song info
+    document.getElementById('btn-edit-song').addEventListener('click', () => {
+      const song = gameState.currentSong;
+      document.getElementById('edit-title').value = song.title;
+      document.getElementById('edit-artist').value = song.artist;
+      document.getElementById('guess-edit-form').classList.remove('hidden');
+      document.getElementById('guess-song-info').style.display = 'none';
+    });
+
+    document.getElementById('btn-edit-save').addEventListener('click', () => {
+      const song = gameState.currentSong;
+      const oldTitle = song.title;
+      const oldArtist = song.artist;
+      const newTitle = document.getElementById('edit-title').value.trim();
+      const newArtist = document.getElementById('edit-artist').value.trim();
+      if (newTitle && newTitle !== oldTitle) {
+        song.title = newTitle;
+        reportCorrection(song, 'title', oldTitle, newTitle);
+      }
+      if (newArtist && newArtist !== oldArtist) {
+        song.artist = newArtist;
+        reportCorrection(song, 'artist', oldArtist, newArtist);
+      }
+      // Update in the SONGS array so the fix persists for this session
+      const songInArray = SONGS.find(s => s.id === song.id);
+      if (songInArray) {
+        if (newTitle) songInArray.title = newTitle;
+        if (newArtist) songInArray.artist = newArtist;
+      }
+      document.getElementById('guess-title').textContent = song.title;
+      document.getElementById('guess-artist').textContent = song.artist;
+      document.getElementById('guess-edit-form').classList.add('hidden');
+      document.getElementById('guess-song-info').style.display = '';
+    });
+
+    document.getElementById('btn-edit-cancel').addEventListener('click', () => {
+      document.getElementById('guess-edit-form').classList.add('hidden');
+      document.getElementById('guess-song-info').style.display = '';
+    });
+
+    // Replay song from guess screen
+    document.getElementById('btn-guess-replay').addEventListener('click', () => {
+      const song = gameState.currentSong;
+      if (song && song.videoId) {
+        playYouTubeVideo(song.videoId);
+      }
+    });
+
+    // Skip forward from guess screen
+    document.getElementById('btn-guess-skip').addEventListener('click', () => {
+      if (ytPlayer && ytPlayer.getCurrentTime) {
+        ytPlayer.seekTo(ytPlayer.getCurrentTime() + 20, true);
+      }
     });
 
     // Correct guess: +1 chip, go to place
     document.getElementById('btn-guess-correct').addEventListener('click', () => {
+      pauseYouTubeVideo();
       SFX.correct();
       gameState.teams[gameState.currentTurn].chips += 1;
       goToPlaceScreen();
@@ -1399,6 +1631,7 @@
 
     // Wrong guess: go to place (no chip)
     document.getElementById('btn-guess-wrong').addEventListener('click', () => {
+      pauseYouTubeVideo();
       SFX.wrong();
       goToPlaceScreen();
     });
@@ -1513,30 +1746,62 @@
     function goToRevealScreen() {
       showScreen('reveal');
 
-      document.getElementById('reveal-prompt').textContent = 'El año de la canción es...';
-      document.getElementById('btn-reveal-year').classList.remove('hidden');
-      document.getElementById('reveal-year').classList.remove('visible');
-      document.getElementById('reveal-year').style.display = 'none';
-      document.getElementById('reveal-result').textContent = '';
-      document.getElementById('reveal-result').className = 'reveal-result';
-      document.getElementById('btn-next-turn').classList.add('hidden');
-    }
-
-    document.getElementById('btn-reveal-year').addEventListener('click', () => {
       const song = gameState.currentSong;
       const year = song.year;
 
-      // Show the year
+      document.getElementById('reveal-prompt').textContent = 'El año de la canción es...';
+      document.getElementById('reveal-result').textContent = '';
+      document.getElementById('reveal-result').className = 'reveal-result';
+      document.getElementById('btn-next-turn').classList.add('hidden');
+      document.getElementById('reveal-edit-form').classList.add('hidden');
+      document.querySelector('.reveal-year-row').style.display = '';
+
+      // Show year directly with animation
       const yearEl = document.getElementById('reveal-year');
       yearEl.textContent = year;
-      yearEl.style.display = '';
+      yearEl.classList.remove('visible');
+      // Trigger reflow for animation restart
+      void yearEl.offsetWidth;
       yearEl.classList.add('visible');
 
-      // Hide the reveal button
-      document.getElementById('btn-reveal-year').classList.add('hidden');
-
-      // Resolve the turn
+      // Resolve the turn immediately
       resolveReveal(year);
+    }
+
+    // Edit year
+    document.getElementById('btn-edit-year').addEventListener('click', () => {
+      document.getElementById('edit-year').value = gameState.currentSong.year;
+      document.getElementById('reveal-edit-form').classList.remove('hidden');
+      document.querySelector('.reveal-year-row').style.display = 'none';
+    });
+
+    document.getElementById('btn-edit-year-save').addEventListener('click', () => {
+      const song = gameState.currentSong;
+      const oldYear = song.year;
+      const newYear = parseInt(document.getElementById('edit-year').value, 10);
+      if (!newYear || newYear < 1900 || newYear > 2030) return;
+      // Update current song and SONGS array
+      song.year = newYear;
+      const songInArray = SONGS.find(s => s.id === song.id);
+      if (songInArray) songInArray.year = newYear;
+      // Report correction via GitHub Issue
+      if (newYear !== oldYear) {
+        reportCorrection(song, 'year', oldYear, newYear);
+      }
+      // Update display
+      document.getElementById('reveal-year').textContent = newYear;
+      document.getElementById('reveal-edit-form').classList.add('hidden');
+      document.querySelector('.reveal-year-row').style.display = '';
+      // Re-resolve with corrected year
+      document.getElementById('reveal-result').textContent = '';
+      document.getElementById('reveal-result').className = 'reveal-result';
+      document.getElementById('btn-next-turn').classList.add('hidden');
+      resolveReveal(newYear);
+    });
+
+    document.getElementById('btn-edit-year-cancel').addEventListener('click', () => {
+      document.getElementById('reveal-edit-form').classList.add('hidden');
+      document.querySelector('.reveal-year-row').style.display = '';
     });
 
     function resolveReveal(year) {
