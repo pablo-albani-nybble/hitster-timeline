@@ -1005,6 +1005,13 @@
         events: {
           onReady: function() {
             ytReady = true;
+          },
+          onError: function(event) {
+            console.warn('YouTube player error:', event.data);
+            // Auto-skip to guess screen if video fails to load
+            if (gameState.phase === 'playing') {
+              stopPlayback();
+            }
           }
         }
       });
@@ -1028,6 +1035,12 @@
 
     // ===== SCREEN MANAGEMENT =====
     function showScreen(screenId) {
+      // Clean up countdown timer if leaving playing screen
+      if (gameState.phase === 'playing' && screenId !== 'playing') {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+      }
+
       document.querySelectorAll('.screen').forEach(s => {
         s.classList.remove('active');
       });
@@ -1175,8 +1188,24 @@
 
       document.getElementById('board-song-counter').textContent = `Canciones restantes: ${remainingSongs()}`;
 
-      // Disable play button if no songs left
-      document.getElementById('btn-play-song').disabled = remainingSongs() === 0;
+      // Handle no songs left
+      const playBtn = document.getElementById('btn-play-song');
+      if (remainingSongs() === 0) {
+        playBtn.disabled = true;
+        // Determine winner by most cards
+        const cardsA = gameState.teams.a.timeline.length;
+        const cardsB = gameState.teams.b.timeline.length;
+        const songCounter = document.getElementById('board-song-counter');
+        if (cardsA > cardsB) {
+          songCounter.textContent = `¡No quedan canciones! ${gameState.teams.a.name} gana con ${cardsA} cartas.`;
+        } else if (cardsB > cardsA) {
+          songCounter.textContent = `¡No quedan canciones! ${gameState.teams.b.name} gana con ${cardsB} cartas.`;
+        } else {
+          songCounter.textContent = `¡No quedan canciones! Empate con ${cardsA} cartas cada uno.`;
+        }
+      } else {
+        playBtn.disabled = false;
+      }
     }
 
     function renderPlaceTimeline(teamKey) {
@@ -1426,8 +1455,8 @@
       rangesContainer.classList.remove('hidden');
 
       ranges.forEach(range => {
-        // Skip the range the active team already chose
-        if (range.label === gameState.selectedRange.label) return;
+        // Skip the range the active team already chose (compare by boundaries, not label)
+        if (range.min === gameState.selectedRange.min && range.max === gameState.selectedRange.max) return;
 
         const btn = document.createElement('button');
         btn.textContent = range.label;
