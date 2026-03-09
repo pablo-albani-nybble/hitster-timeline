@@ -4,7 +4,6 @@ Uses Claude API to generate song lists, then youtube-search-python for videoIds.
 Saves checkpoint every 50 songs. Can resume from last checkpoint.
 """
 import json
-import os
 import time
 from pathlib import Path
 
@@ -94,8 +93,7 @@ def main():
     checkpoint = load_checkpoint()
     if checkpoint:
         print(f"Resuming from checkpoint: {len(checkpoint)} songs loaded")
-        songs_with_ids = [s for s in checkpoint if s.get("videoId") is not None]
-        songs_without_ids = [s for s in checkpoint if s.get("videoId") is None]
+        songs_without_ids = [s for s in checkpoint if not s.get("videoId")]
         if songs_without_ids:
             all_songs = checkpoint
         else:
@@ -110,7 +108,7 @@ def main():
         print(f"Generated {len(all_songs)} songs. Checkpoint saved.")
 
     # Step 2: Find YouTube videoIds for songs missing them
-    missing = [s for s in all_songs if "videoId" not in s]
+    missing = [s for s in all_songs if not s.get("videoId")]
     print(f"\nSearching YouTube videoIds for {len(missing)} songs...")
 
     for i, song in enumerate(tqdm(missing, desc="Finding videoIds")):
